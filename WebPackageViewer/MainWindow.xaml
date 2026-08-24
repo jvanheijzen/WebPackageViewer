@@ -62,7 +62,7 @@
 
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="36"/>
+                <RowDefinition x:Name="TitleBarRow" Height="36"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -126,7 +126,9 @@
                         Click="CloseButton_Click"/>
             </Grid>
 
-            <Grid Grid.Row="1" Margin= "3 0 3 3"
+            <Grid x:Name="ContentContainer"
+                  Grid.Row="1"
+                  Margin="3 0 3 3"
                   Background="{DynamicResource WindowBackgroundBrush}">
                 <Grid Name="MainGrid">
                     <wv2:WebView2 x:Name="webView"/>

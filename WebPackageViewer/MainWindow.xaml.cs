@@ -7,6 +7,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace WebPackageViewer
 {
@@ -17,6 +19,10 @@ namespace WebPackageViewer
         public string ExeFile { get; set; }
 
         public string OutputFolder { get; set; }
+        private bool _isFullScreen;
+        private WindowState _previousWindowState;
+        private Rect _previousWindowBounds;
+        private bool _previousTopmost;
 
 
         public MainWindow(WebViewerConfiguration config)
@@ -63,6 +69,11 @@ namespace WebPackageViewer
                     Path.GetFileNameWithoutExtension("WebViewer") + "_WebView");
                 var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: envPath);
                 await webView.EnsureCoreWebView2Async(environment);
+
+                webView.CoreWebView2.ContainsFullScreenElementChanged += (s, e) =>
+                {
+                    SetFullScreen(webView.CoreWebView2.ContainsFullScreenElement);
+                };
 
 
                 // Handle top level links
@@ -136,6 +147,120 @@ namespace WebPackageViewer
                 MessageBox.Show("WebView2 initialization failed: " + ex.Message);
             }
         }
+
+        private void SetFullScreen(bool fullScreen)
+        {
+            if (fullScreen == _isFullScreen)
+                return;
+
+            if (fullScreen)
+            {
+                _previousWindowState = WindowState;
+                _previousTopmost = Topmost;
+
+                if (WindowState == WindowState.Normal)
+                    _previousWindowBounds = new Rect(Left, Top, Width, Height);
+                else
+                    _previousWindowBounds = RestoreBounds;
+
+                // A maximized Windows window normally stops at the taskbar,
+                // so switch to Normal and explicitly size it to the full monitor.
+                WindowState = WindowState.Normal;
+
+                TitleBarRow.Height = new GridLength(0);
+                ContentContainer.Margin = new Thickness(0);
+                RootBorder.Margin = new Thickness(0);
+                webView.Margin = new Thickness(0);
+
+                Topmost = true;
+
+                var hwnd = new WindowInteropHelper(this).Handle;
+                var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+                var monitorInfo = new MONITORINFO();
+                monitorInfo.cbSize = Marshal.SizeOf(typeof(MONITORINFO));
+
+                if (GetMonitorInfo(monitor, ref monitorInfo))
+                {
+                    SetWindowPos(
+                        hwnd,
+                        HWND_TOPMOST,
+                        monitorInfo.rcMonitor.Left,
+                        monitorInfo.rcMonitor.Top,
+                        monitorInfo.rcMonitor.Right - monitorInfo.rcMonitor.Left,
+                        monitorInfo.rcMonitor.Bottom - monitorInfo.rcMonitor.Top,
+                        SWP_SHOWWINDOW | SWP_FRAMECHANGED);
+                }
+
+                _isFullScreen = true;
+            }
+            else
+            {
+                TitleBarRow.Height = new GridLength(36);
+                ContentContainer.Margin = new Thickness(3, 0, 3, 3);
+                RootBorder.Margin = new Thickness(0);
+                webView.Margin = new Thickness(2, 0, 2, 2);
+
+                Topmost = _previousTopmost;
+
+                WindowState = WindowState.Normal;
+                Left = _previousWindowBounds.Left;
+                Top = _previousWindowBounds.Top;
+                Width = _previousWindowBounds.Width;
+                Height = _previousWindowBounds.Height;
+
+                if (_previousWindowState == WindowState.Maximized)
+                    WindowState = WindowState.Maximized;
+
+                _isFullScreen = false;
+
+                UpdateWindowLayout();
+            }
+        }
+
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+        private const uint SWP_SHOWWINDOW = 0x0040;
+        private const uint SWP_FRAMECHANGED = 0x0020;
+
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(
+            IntPtr hwnd,
+            uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(
+            IntPtr hMonitor,
+            ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(
+            IntPtr hWnd,
+            IntPtr hWndInsertAfter,
+            int X,
+            int Y,
+            int cx,
+            int cy,
+            uint uFlags);
 
         private static string GetMimeType(string filePath)
         {
