@@ -50,6 +50,11 @@ namespace WebPackageViewer.CommandLine
         /// </summary>
         public bool Unhandled { get; set; }
 
+        /// <summary>
+        /// Opens the graphical Web Package Builder.
+        /// </summary>
+        public bool ShowPackageBuilder { get; set; }
+
 
         /// <summary>
         /// Optional command to sign the EXE when packaging.
@@ -105,6 +110,13 @@ namespace WebPackageViewer.CommandLine
                 first = string.Empty; // ignore any switches - only folder or commands are valid
             if (!string.IsNullOrEmpty(first))
                 first = Environment.ExpandEnvironmentVariables(first);
+
+            if (first == "builder")
+            {
+                ShowPackageBuilder = true;
+                Unhandled = true;
+                return;
+            }
 
             if (first == "package")
             {
@@ -189,6 +201,7 @@ namespace WebPackageViewer.CommandLine
                 ColorConsole.WriteLine("\nCommands:", ConsoleColor.Green);
                 ColorConsole.WriteLine(
                     """
+                    builder       - Open the graphical Web Package Builder
                     package       - Create a package from an executable and a zip file
                     unpackage     - Unpackage the Exe and Website into the output folder
                     help          - Show this help message
