@@ -1,0 +1,79 @@
+﻿<Window x:Class="WebPackageLicenseGenerator.ManageCoursesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Manage Courses"
+        Width="760"
+        Height="500"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   TextWrapping="Wrap"
+                   Foreground="#555555"
+                   Text="Courses are shared with Web Package Builder. The Salesforce Product Code is the stable license identity; course name and version are descriptive."/>
+
+        <DataGrid Grid.Row="2"
+                  x:Name="CoursesDataGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Product Code"
+                                    Binding="{Binding ProductCode}"
+                                    Width="180"/>
+                <DataGridTextColumn Header="Course Name"
+                                    Binding="{Binding CourseName}"
+                                    Width="*"/>
+                <DataGridTextColumn Header="Version"
+                                    Binding="{Binding CourseVersion}"
+                                    Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal">
+                <Button Width="95"
+                        Margin="0,0,8,0"
+                        Content="Add..."
+                        Click="AddButton_Click"/>
+                <Button Width="95"
+                        Margin="0,0,8,0"
+                        Content="Edit..."
+                        Click="EditButton_Click"/>
+                <Button Width="95"
+                        Content="Delete"
+                        Click="DeleteButton_Click"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <Button Width="120"
+                        Margin="0,0,8,0"
+                        Content="Export Catalog..."
+                        Click="ExportButton_Click"/>
+                <Button Width="120"
+                        Content="Import Catalog..."
+                        Click="ImportButton_Click"/>
+            </StackPanel>
+
+            <Button Grid.Column="2"
+                    Width="95"
+                    Content="Close"
+                    Click="CloseButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>

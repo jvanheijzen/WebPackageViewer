@@ -1,0 +1,64 @@
+﻿<Window x:Class="WebPackageLicenseGenerator.CourseEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Course"
+        Width="520"
+        Height="330"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Salesforce Product Code"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="ProductCodeTextBox"
+                     Height="30"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="Course Name"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="CourseNameTextBox"
+                     Height="30"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4">
+            <TextBlock Text="Course Version"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="CourseVersionTextBox"
+                     Height="30"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="6"
+                   Foreground="#666666"
+                   TextWrapping="Wrap"
+                   Text="The Salesforce Product Code is the stable license identity. For an existing course it cannot be changed; edit the name or version instead."/>
+
+        <StackPanel Grid.Row="8"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Width="100"
+                    Margin="0,0,10,0"
+                    Content="Cancel"
+                    Click="CancelButton_Click"/>
+            <Button Width="100"
+                    Content="Save"
+                    IsDefault="True"
+                    Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
