@@ -1,0 +1,64 @@
+﻿<Window x:Class="WebPackageViewer.LicenseActivationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Offline License Required"
+        Width="620"
+        Height="390"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" FontSize="22" FontWeight="SemiBold"
+                   Text="Offline license required"/>
+
+        <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="14">
+            This course is licensed for offline use and is not activated
+            on this computer. Send the course ID and machine ID below to
+            the course provider, then import the license file they return.
+        </TextBlock>
+
+        <StackPanel Grid.Row="4">
+            <TextBlock Text="Course" FontWeight="SemiBold" Margin="0,0,0,4"/>
+            <TextBox x:Name="CourseTextBox" IsReadOnly="True" Height="30"
+                     VerticalContentAlignment="Center"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="6">
+            <TextBlock Text="Machine ID" FontWeight="SemiBold" Margin="0,0,0,4"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="MachineIdTextBox" IsReadOnly="True" Height="30"
+                         VerticalContentAlignment="Center" FontFamily="Consolas"/>
+                <Button Grid.Column="1" Margin="10,0,0,0" Width="110"
+                        Content="Copy" Click="CopyMachineIdButton_Click"/>
+            </Grid>
+        </StackPanel>
+
+        <TextBlock Grid.Row="8" x:Name="StatusTextBlock"
+                   TextWrapping="Wrap" Foreground="DarkRed"/>
+
+        <StackPanel Grid.Row="10" Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Width="120" Margin="0,0,10,0"
+                    Content="Close" Click="CloseButton_Click"/>
+            <Button Width="150" Content="Import License..."
+                    IsDefault="True" Click="ImportLicenseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

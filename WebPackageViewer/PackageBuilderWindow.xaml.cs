@@ -1,35 +1,111 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using WebPackageViewer.CourseCatalog;
+using WebPackageViewer.Licensing;
 
 namespace WebPackageViewer
 {
     public partial class PackageBuilderWindow : Window
     {
         private string _lastSuggestedOutput;
+        private string _lastSuggestedModuleName;
+        private readonly CourseCatalogService _courseCatalog =
+            new CourseCatalogService();
 
         public PackageBuilderWindow()
         {
             InitializeComponent();
+            ReloadCourses();
         }
-
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
         }
 
-
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
 
+        private void RequireOfflineLicenseCheckBox_Changed(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var enabled = RequireOfflineLicenseCheckBox.IsChecked == true;
+
+            CourseComboBox.IsEnabled = enabled;
+            AddCourseButton.IsEnabled = enabled;
+            ProductCodeTextBox.IsEnabled = enabled;
+            CourseNameTextBox.IsEnabled = enabled;
+            CourseVersionTextBox.IsEnabled = enabled;
+            ModuleIdTextBox.IsEnabled = enabled;
+            ModuleNameTextBox.IsEnabled = enabled;
+        }
+
+        private void ReloadCourses(string selectProductCode = null)
+        {
+            var courses = _courseCatalog.Load();
+
+            CourseComboBox.ItemsSource = courses;
+
+            if (!string.IsNullOrWhiteSpace(selectProductCode))
+            {
+                CourseComboBox.SelectedItem = courses.FirstOrDefault(c =>
+                    string.Equals(
+                        c.ProductCode,
+                        selectProductCode,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+            else if (courses.Count > 0 && CourseComboBox.SelectedIndex < 0)
+            {
+                CourseComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void AddCourseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new AddCourseWindow
+            {
+                Owner = this
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            try
+            {
+                _courseCatalog.Add(dialog.Course);
+                ReloadCourses(dialog.Course.ProductCode);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Course Catalog",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void CourseComboBox_SelectionChanged(
+            object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            var course = CourseComboBox.SelectedItem as CourseDefinition;
+
+            ProductCodeTextBox.Text = course?.ProductCode ?? string.Empty;
+            CourseNameTextBox.Text = course?.CourseName ?? string.Empty;
+            CourseVersionTextBox.Text = course?.CourseVersion ?? string.Empty;
+        }
 
         private void BrowseSourceButton_Click(object sender, RoutedEventArgs e)
         {
@@ -46,11 +122,8 @@ namespace WebPackageViewer
                 return;
 
             SourceFolderTextBox.Text = Path.GetDirectoryName(dialog.FileName);
-
-            // Use the selected HTML file as the initial page.
             InitialUrlTextBox.Text = "/" + Path.GetFileName(dialog.FileName);
         }
-
 
         private void BrowseOutputButton_Click(object sender, RoutedEventArgs e)
         {
@@ -84,7 +157,6 @@ namespace WebPackageViewer
                 }
                 catch
                 {
-                    // Ignore malformed manually-entered paths.
                 }
             }
 
@@ -95,13 +167,12 @@ namespace WebPackageViewer
             }
         }
 
-
-        private void SourceFolderTextBox_TextChanged(object sender,
+        private void SourceFolderTextBox_TextChanged(
+            object sender,
             System.Windows.Controls.TextChangedEventArgs e)
         {
             PopulateSiteInformation();
         }
-
 
         private void PopulateSiteInformation()
         {
@@ -120,7 +191,6 @@ namespace WebPackageViewer
             {
                 var html = File.ReadAllText(indexPath);
 
-                // Read the normal HTML <title>.
                 var titleMatch = Regex.Match(
                     html,
                     @"<title\b[^>]*>(.*?)</title>",
@@ -134,15 +204,22 @@ namespace WebPackageViewer
                     title = new DirectoryInfo(sourceFolder).Name;
 
                 if (!string.IsNullOrWhiteSpace(title))
+                {
                     WindowTitleTextBox.Text = title;
 
+                    // Default the module name to the HTML/window title, but preserve
+                    // a module name that the user has manually edited.
+                    if (string.IsNullOrWhiteSpace(ModuleNameTextBox.Text) ||
+                        string.Equals(
+                            ModuleNameTextBox.Text,
+                            _lastSuggestedModuleName,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModuleNameTextBox.Text = title;
+                        _lastSuggestedModuleName = title;
+                    }
+                }
 
-                // iSpring and some other generators include dimensions
-                // in a comment such as:
-                //
-                //     <!-- 1296 744 -->
-                //
-                // If present, use them as the initial window dimensions.
                 var sizeMatch = Regex.Match(
                     html,
                     @"<!--\s*(\d{3,5})\s+(\d{3,5})\s*-->");
@@ -154,11 +231,23 @@ namespace WebPackageViewer
                         sizeMatch.Groups[2].Value;
                 }
 
+                // Convenience only: detect "Module 0" / "Module 12" in the
+                // HTML title and populate a normalized module identifier.
+                var moduleMatch = Regex.Match(
+                    title ?? string.Empty,
+                    @"\bModule\s+(\d+)\b",
+                    RegexOptions.IgnoreCase);
 
-                // Suggest an output filename, but don't overwrite a path
-                // the user has manually selected.
+                if (moduleMatch.Success &&
+                    string.IsNullOrWhiteSpace(ModuleIdTextBox.Text))
+                {
+                    int moduleNumber;
+
+                    if (int.TryParse(moduleMatch.Groups[1].Value, out moduleNumber))
+                        ModuleIdTextBox.Text = "M" + moduleNumber.ToString("00");
+                }
+
                 var safeName = GetSafeFileName(title);
-
                 var parentFolder = Directory.GetParent(sourceFolder)?.FullName;
 
                 if (string.IsNullOrWhiteSpace(parentFolder))
@@ -179,11 +268,8 @@ namespace WebPackageViewer
             }
             catch
             {
-                // A malformed or unusual HTML file should not make
-                // the builder unusable. The user can enter values manually.
             }
         }
-
 
         private async void BuildButton_Click(object sender, RoutedEventArgs e)
         {
@@ -194,33 +280,60 @@ namespace WebPackageViewer
             var virtualPath = VirtualPathTextBox.Text?.Trim();
             var windowSize = WindowSizeTextBox.Text?.Trim();
 
+            var requireOfflineLicense =
+                RequireOfflineLicenseCheckBox.IsChecked == true;
+
+            var course = CourseComboBox.SelectedItem as CourseDefinition;
+            var moduleId = ModuleIdTextBox.Text?.Trim();
+            var moduleName = ModuleNameTextBox.Text?.Trim();
 
             if (string.IsNullOrWhiteSpace(sourceFolder) ||
                 !Directory.Exists(sourceFolder))
             {
-                MessageBox.Show(
-                    this,
-                    "Select a valid Web site folder.",
-                    "Web Package Builder",
-                    MessageBoxButton.OK,
+                MessageBox.Show(this, "Select a valid Web site folder.",
+                    "Web Package Builder", MessageBoxButton.OK,
                     MessageBoxImage.Warning);
-
                 return;
             }
-
 
             if (string.IsNullOrWhiteSpace(outputFile))
             {
-                MessageBox.Show(
-                    this,
-                    "Select an output EXE file.",
-                    "Web Package Builder",
-                    MessageBoxButton.OK,
+                MessageBox.Show(this, "Select an output EXE file.",
+                    "Web Package Builder", MessageBoxButton.OK,
                     MessageBoxImage.Warning);
-
                 return;
             }
 
+            if (requireOfflineLicense && course == null)
+            {
+                MessageBox.Show(this,
+                    "Select a course from the course catalog.",
+                    "Web Package Builder", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            if (requireOfflineLicense &&
+                string.IsNullOrWhiteSpace(moduleId))
+            {
+                MessageBox.Show(this,
+                    "Enter a Module ID, such as M00.",
+                    "Web Package Builder", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                ModuleIdTextBox.Focus();
+                return;
+            }
+
+            if (requireOfflineLicense &&
+                string.IsNullOrWhiteSpace(moduleName))
+            {
+                MessageBox.Show(this,
+                    "Enter the Module Name.",
+                    "Web Package Builder", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                ModuleNameTextBox.Focus();
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(initialUrl))
                 initialUrl = "/index.html";
@@ -233,7 +346,6 @@ namespace WebPackageViewer
 
             if (string.IsNullOrWhiteSpace(windowSize))
                 windowSize = "1280x800";
-
 
             if (File.Exists(outputFile))
             {
@@ -250,10 +362,8 @@ namespace WebPackageViewer
                     return;
             }
 
-
             BuildButton.IsEnabled = false;
             StatusTextBlock.Text = "Building package...";
-
 
             try
             {
@@ -264,29 +374,30 @@ namespace WebPackageViewer
                         windowTitle,
                         initialUrl,
                         virtualPath,
-                        windowSize));
-
+                        windowSize,
+                        requireOfflineLicense,
+                        course,
+                        moduleId,
+                        moduleName));
 
                 if (!result.Success)
                 {
                     StatusTextBlock.Text = "Build failed.";
-
-                    MessageBox.Show(
-                        this,
-                        result.ErrorMessage,
-                        "Web Package Builder",
-                        MessageBoxButton.OK,
+                    MessageBox.Show(this, result.ErrorMessage,
+                        "Web Package Builder", MessageBoxButton.OK,
                         MessageBoxImage.Error);
-
                     return;
                 }
 
-
-                StatusTextBlock.Text = "Package created successfully.";
+                StatusTextBlock.Text = requireOfflineLicense
+                    ? "Licensed package created successfully."
+                    : "Package created successfully.";
 
                 MessageBox.Show(
                     this,
-                    "Package created successfully:\n\n" +
+                    (requireOfflineLicense
+                        ? "Licensed package created successfully:\n\n"
+                        : "Package created successfully:\n\n") +
                     outputFile,
                     "Web Package Builder",
                     MessageBoxButton.OK,
@@ -295,12 +406,8 @@ namespace WebPackageViewer
             catch (Exception ex)
             {
                 StatusTextBlock.Text = "Build failed.";
-
-                MessageBox.Show(
-                    this,
-                    ex.Message,
-                    "Web Package Builder",
-                    MessageBoxButton.OK,
+                MessageBox.Show(this, ex.Message,
+                    "Web Package Builder", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
             finally
@@ -309,14 +416,17 @@ namespace WebPackageViewer
             }
         }
 
-
         private BuildResult BuildPackage(
             string sourceFolder,
             string outputFile,
             string windowTitle,
             string initialUrl,
             string virtualPath,
-            string windowSize)
+            string windowSize,
+            bool requireOfflineLicense,
+            CourseDefinition course,
+            string moduleId,
+            string moduleName)
         {
             var tempRoot = Path.Combine(
                 Path.GetTempPath(),
@@ -328,15 +438,8 @@ namespace WebPackageViewer
             try
             {
                 Directory.CreateDirectory(stageFolder);
-
                 CopyDirectory(sourceFolder, stageFolder);
 
-
-                // WebViewerConfiguration currently expects a very specific
-                // JSON layout, including one space following each colon.
-                //
-                // Write that exact format instead of relying on a JSON
-                // serializer that might format whitespace differently.
                 var config =
                     "{\r\n" +
                     "  \"VirtualPath\": \"" + EscapeJsonString(virtualPath) + "\",\r\n" +
@@ -346,46 +449,46 @@ namespace WebPackageViewer
                     "}\r\n";
 
                 File.WriteAllText(
-                    Path.Combine(
-                        stageFolder,
-                        "WebPackageViewer.config.json"),
+                    Path.Combine(stageFolder, "WebPackageViewer.config.json"),
                     config);
 
+                if (requireOfflineLicense)
+                {
+                    var requirement = new OfflineLicenseRequirement
+                    {
+                        Version = 1,
+                        CourseId = course.ProductCode,
+                        CourseName = course.CourseName,
+                        CourseVersion = course.CourseVersion,
+                        ModuleId = moduleId,
+                        ModuleName = moduleName
+                    };
+
+                    OfflineLicenseSerializer.WriteRequirement(
+                        Path.Combine(
+                            stageFolder,
+                            OfflineLicenseManager.RequirementFileName),
+                        requirement);
+                }
 
                 var packager = new FilePackager();
-
-                var generatedZip =
-                    packager.ZipFolder(stageFolder, zipFile);
+                var generatedZip = packager.ZipFolder(stageFolder, zipFile);
 
                 if (string.IsNullOrWhiteSpace(generatedZip))
-                {
                     return BuildResult.Fail(
                         "Failed to create the Web site ZIP file.\n\n" +
                         packager.ErrorMessage);
-                }
 
+                var packageExe = Assembly.GetExecutingAssembly().Location;
 
-                var packageExe =
-                    Assembly.GetExecutingAssembly().Location;
-
-
-                if (!packager.PackageFile(
-                    outputFile,
-                    packageExe,
-                    generatedZip))
-                {
+                if (!packager.PackageFile(outputFile, packageExe, generatedZip))
                     return BuildResult.Fail(
                         "Failed to create the packaged executable.\n\n" +
                         packager.ErrorMessage);
-                }
-
 
                 if (!File.Exists(outputFile))
-                {
                     return BuildResult.Fail(
                         "Packaging completed but the output EXE was not created.");
-                }
-
 
                 return BuildResult.Ok();
             }
@@ -402,12 +505,9 @@ namespace WebPackageViewer
                 }
                 catch
                 {
-                    // Temporary cleanup failure should not invalidate
-                    // a successfully-created package.
                 }
             }
         }
-
 
         private static void CopyDirectory(
             string sourceFolder,
@@ -426,14 +526,11 @@ namespace WebPackageViewer
             foreach (var directory in Directory.GetDirectories(sourceFolder))
             {
                 var destinationDirectory =
-                    Path.Combine(
-                        destinationFolder,
-                        Path.GetFileName(directory));
+                    Path.Combine(destinationFolder, Path.GetFileName(directory));
 
                 CopyDirectory(directory, destinationDirectory);
             }
         }
-
 
         private static string GetSafeFileName(string value)
         {
@@ -452,7 +549,6 @@ namespace WebPackageViewer
                 : safeName;
         }
 
-
         private static string EscapeJsonString(string value)
         {
             if (value == null)
@@ -466,22 +562,15 @@ namespace WebPackageViewer
                 .Replace("\t", "\\t");
         }
 
-
         private class BuildResult
         {
             public bool Success { get; private set; }
-
             public string ErrorMessage { get; private set; }
-
 
             public static BuildResult Ok()
             {
-                return new BuildResult
-                {
-                    Success = true
-                };
+                return new BuildResult { Success = true };
             }
-
 
             public static BuildResult Fail(string message)
             {

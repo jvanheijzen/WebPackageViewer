@@ -6,8 +6,8 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Height="570"
-        Width="760">
+        Height="790"
+        Width="800">
 
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#2D2D30"/>
@@ -74,11 +74,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Title bar -->
             <Grid x:Name="TitleBar"
                   Grid.Row="0"
                   Background="{DynamicResource ActiveTitleBarBackgroundBrush}">
-
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="46"/>
@@ -88,12 +86,10 @@
                 <StackPanel Orientation="Horizontal"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center">
-
                     <Image Source="/WebPackageViewer.ico"
                            Width="24"
                            Height="24"
                            Margin="0,0,8,0"/>
-
                     <TextBlock Text="Web Package Builder"
                                Foreground="{DynamicResource TitleBarForegroundBrush}"
                                VerticalAlignment="Center"/>
@@ -116,143 +112,213 @@
                         shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
             </Grid>
 
-            <!-- Builder content -->
-            <Grid Grid.Row="1"
-                  Margin="24">
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="24">
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="16"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Web Site Folder"
+                                       Foreground="White"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="SourceFolderTextBox"
+                                     TextChanged="SourceFolderTextBox_TextChanged"/>
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Width="90"
+                                Margin="10,21,0,0"
+                                Content="Browse..."
+                                Click="BrowseSourceButton_Click"/>
+                    </Grid>
 
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="16"/>
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Output EXE"
+                                       Foreground="White"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="OutputFileTextBox"/>
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Width="90"
+                                Margin="10,21,0,0"
+                                Content="Browse..."
+                                Click="BrowseOutputButton_Click"/>
+                    </Grid>
 
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="16"/>
-
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="16"/>
-
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Source -->
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel>
-                        <TextBlock Text="Web Site Folder"
+                    <StackPanel Margin="0,16,0,0">
+                        <TextBlock Text="Window Title"
                                    Foreground="White"
                                    Margin="0,0,0,5"/>
-
-                        <TextBox x:Name="SourceFolderTextBox"
-                                 TextChanged="SourceFolderTextBox_TextChanged"/>
+                        <TextBox x:Name="WindowTitleTextBox"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1"
-                            Width="90"
-                            Margin="10,21,0,0"
-                            Content="Browse..."
-                            Click="BrowseSourceButton_Click"/>
-                </Grid>
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                <!-- Output -->
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Initial URL"
+                                       Foreground="White"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="InitialUrlTextBox"
+                                     Text="/index.html"/>
+                        </StackPanel>
 
-                    <StackPanel>
-                        <TextBlock Text="Output EXE"
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Virtual Path"
+                                       Foreground="White"
+                                       Margin="0,0,0,5"/>
+                            <TextBox x:Name="VirtualPathTextBox"
+                                     Text="/"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Margin="0,16,0,0">
+                        <TextBlock Text="Window Size"
                                    Foreground="White"
                                    Margin="0,0,0,5"/>
-
-                        <TextBox x:Name="OutputFileTextBox"/>
+                        <TextBox x:Name="WindowSizeTextBox"
+                                 Width="180"
+                                 HorizontalAlignment="Left"
+                                 Text="1280x800"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1"
-                            Width="90"
-                            Margin="10,21,0,0"
-                            Content="Browse..."
-                            Click="BrowseOutputButton_Click"/>
-                </Grid>
+                    <Border Margin="0,18,0,0"
+                            BorderBrush="#666666"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="14">
+                        <StackPanel>
+                            <CheckBox x:Name="RequireOfflineLicenseCheckBox"
+                                      Foreground="White"
+                                      FontWeight="SemiBold"
+                                      Content="Require offline license"
+                                      Checked="RequireOfflineLicenseCheckBox_Changed"
+                                      Unchecked="RequireOfflineLicenseCheckBox_Changed"/>
 
-                <!-- Title -->
-                <StackPanel Grid.Row="4">
-                    <TextBlock Text="Window Title"
-                               Foreground="White"
-                               Margin="0,0,0,5"/>
+                            <TextBlock Margin="0,7,0,12"
+                                       Foreground="#CCCCCC"
+                                       TextWrapping="Wrap"
+                                       Text="A license applies to the selected course. Every module packaged with the same Salesforce Product Code will use the same machine license."/>
 
-                    <TextBox x:Name="WindowTitleTextBox"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="Course"
+                                               Foreground="White"
+                                               Margin="0,0,0,5"/>
+                                    <ComboBox x:Name="CourseComboBox"
+                                              Height="30"
+                                              IsEnabled="False"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectionChanged="CourseComboBox_SelectionChanged"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Width="110"
+                                        Margin="10,21,0,0"
+                                        Content="Add Course..."
+                                        IsEnabled="False"
+                                        x:Name="AddCourseButton"
+                                        Click="AddCourseButton_Click"/>
+                            </Grid>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="Salesforce Product Code"
+                                               Foreground="White"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="ProductCodeTextBox"
+                                             IsReadOnly="True"
+                                             IsEnabled="False"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Course Version"
+                                               Foreground="White"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="CourseVersionTextBox"
+                                             IsReadOnly="True"
+                                             IsEnabled="False"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Margin="0,12,0,0">
+                                <TextBlock Text="Canonical Course Name"
+                                           Foreground="White"
+                                           Margin="0,0,0,5"/>
+                                <TextBox x:Name="CourseNameTextBox"
+                                         IsReadOnly="True"
+                                         IsEnabled="False"/>
+                            </StackPanel>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="Module ID"
+                                               Foreground="White"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="ModuleIdTextBox"
+                                             IsEnabled="False"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Module Name"
+                                               Foreground="White"
+                                               Margin="0,0,0,5"/>
+                                    <TextBox x:Name="ModuleNameTextBox"
+                                             IsEnabled="False"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Margin="0,18,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock x:Name="StatusTextBlock"
+                                   VerticalAlignment="Center"
+                                   Foreground="White"/>
+
+                        <Button Grid.Column="1"
+                                x:Name="BuildButton"
+                                Width="140"
+                                Height="38"
+                                FontWeight="SemiBold"
+                                Content="Build Package"
+                                Click="BuildButton_Click"/>
+                    </Grid>
                 </StackPanel>
-
-                <!-- URL/path -->
-                <Grid Grid.Row="6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel>
-                        <TextBlock Text="Initial URL"
-                                   Foreground="White"
-                                   Margin="0,0,0,5"/>
-
-                        <TextBox x:Name="InitialUrlTextBox"
-                                 Text="/index.html"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Virtual Path"
-                                   Foreground="White"
-                                   Margin="0,0,0,5"/>
-
-                        <TextBox x:Name="VirtualPathTextBox"
-                                 Text="/"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Size -->
-                <StackPanel Grid.Row="8">
-                    <TextBlock Text="Window Size"
-                               Foreground="White"
-                               Margin="0,0,0,5"/>
-
-                    <TextBox x:Name="WindowSizeTextBox"
-                             Width="180"
-                             HorizontalAlignment="Left"
-                             Text="1280x800"/>
-                </StackPanel>
-
-                <!-- Bottom -->
-                <Grid Grid.Row="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock x:Name="StatusTextBlock"
-                               VerticalAlignment="Center"
-                               Foreground="White"/>
-
-                    <Button Grid.Column="1"
-                            x:Name="BuildButton"
-                            Width="140"
-                            Height="38"
-                            FontWeight="SemiBold"
-                            Content="Build Package"
-                            Click="BuildButton_Click"/>
-                </Grid>
-
-            </Grid>
+            </ScrollViewer>
         </Grid>
     </Border>
 </Window>

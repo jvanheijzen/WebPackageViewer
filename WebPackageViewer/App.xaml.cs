@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using WebPackageViewer.CommandLine;
 using WebPackageViewer.Utilities;
+using WebPackageViewer.Licensing;
 
 
 namespace WebPackageViewer
@@ -159,6 +160,56 @@ namespace WebPackageViewer
             // -------------------------------------------------------------
             // Normal Web viewer behavior
             // -------------------------------------------------------------
+
+            // -------------------------------------------------------------
+            // Offline licensing
+            // -------------------------------------------------------------
+            //
+            // A package is licensed only when its extracted Web root contains
+            // WebPackageViewer.license.json. Packages without that file continue
+            // to behave exactly as they did before.
+            //
+            var licenseRequirement =
+                OfflineLicenseManager.FindRequirement(
+                    Environment.CurrentDirectory);
+
+            if (licenseRequirement != null)
+            {
+                var licenseResult =
+                    OfflineLicenseManager.ValidateInstalledLicense(
+                        licenseRequirement);
+
+                if (!licenseResult.IsValid)
+                {
+                    var activationWindow =
+                        new LicenseActivationWindow(
+                            licenseRequirement,
+                            licenseResult.ErrorMessage);
+
+                    if (activationWindow.ShowDialog() != true)
+                    {
+                        Shutdown();
+                        return;
+                    }
+
+                    // Verify once more after the user imports a license.
+                    licenseResult =
+                        OfflineLicenseManager.ValidateInstalledLicense(
+                            licenseRequirement);
+
+                    if (!licenseResult.IsValid)
+                    {
+                        MessageBox.Show(
+                            licenseResult.ErrorMessage,
+                            "Offline License Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Exclamation);
+
+                        Shutdown();
+                        return;
+                    }
+                }
+            }
 
             // Read configuration from JSON and override with explicit values
             // passed on the command line.
