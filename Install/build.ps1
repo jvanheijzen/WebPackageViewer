@@ -50,7 +50,23 @@ remove-item ../WebPackageViewer.exe.config
 
 # copy unsigned copy
 copy ../WebPackageViewer.exe ../WebPackageViewer-Unsigned.exe
-copy ../WebPackageViewer.exe "\projects\DocumentationMonster\DocumentationMonster\BinSupport\WebPackageViewer.exe"
+$documentationMonsterTarget =
+    "\projects\DocumentationMonster\DocumentationMonster\BinSupport\WebPackageViewer.exe"
+
+$documentationMonsterFolder =
+    Split-Path $documentationMonsterTarget -Parent
+
+if (Test-Path $documentationMonsterFolder) {
+    Copy-Item `
+        "../WebPackageViewer.exe" `
+        $documentationMonsterTarget `
+        -Force
+
+    Write-Host "Copied WebPackageViewer to DocumentationMonster."
+}
+else {
+    Write-Host "Skipping DocumentationMonster deployment - target not present."
+}
 
 & ".\signfile" -file "..\WebPackageViewer.exe"
 

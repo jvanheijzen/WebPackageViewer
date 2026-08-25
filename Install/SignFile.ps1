@@ -14,6 +14,23 @@ param(
     [string]$file8 = "",
     [boolean]$login = $false
 )
+
+$metadataPath =
+    Join-Path $PSScriptRoot "SignfileMetadata.json"
+
+if (-not (Test-Path $metadataPath)) {
+    Write-Host "Skipping code signing - SignfileMetadata.json is not present."
+    return
+}
+
+$signCommand =
+    Get-Command "sign" -ErrorAction SilentlyContinue
+
+if (-not $signCommand) {
+    Write-Host "Skipping code signing - 'sign' tool is not installed."
+    return
+}
+
 if (-not $file) {
     Write-Host "Usage: SignFile.ps1 -file <path to file to sign>"
     exit 1
@@ -33,7 +50,10 @@ if ($login) {   # force a login
 #   "CodeSigningAccountName": "MySigningAccount",
 #   "CertificateProfileName": "MySigningCertificateProfile"
 # }
-$metadata = Get-Content -Path "SignfileMetadata.json" -Raw | ConvertFrom-Json
+$metadata =
+    Get-Content -Path $metadataPath -Raw |
+    ConvertFrom-Json
+
 $tsEndpoint = $metadata.Endpoint
 $tsAccount = $metadata.CodeSigningAccountName
 $tsCertProfile = $metadata.CertificateProfileName
