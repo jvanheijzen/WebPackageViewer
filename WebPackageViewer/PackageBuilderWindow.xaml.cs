@@ -481,10 +481,48 @@ namespace WebPackageViewer
 
                 var packageExe = Assembly.GetExecutingAssembly().Location;
 
-                if (!packager.PackageFile(outputFile, packageExe, generatedZip))
-                    return BuildResult.Fail(
-                        "Failed to create the packaged executable.\n\n" +
-                        packager.ErrorMessage);
+                if (requireOfflineLicense)
+                {
+                    // Licensed packages use the protected/encrypted payload format.
+                    // Course/module identity remains outside the encrypted payload so
+                    // the viewer can validate authorization before decrypting the site.
+                    var protectedRequirement =
+                        new OfflineLicenseRequirement
+                        {
+                            Version = 1,
+                            CourseId = course.ProductCode,
+                            CourseName = course.CourseName,
+                            CourseVersion = course.CourseVersion,
+                            ModuleId = moduleId,
+                            ModuleName = moduleName
+                        };
+
+                    var protectedPackager =
+                        new ProtectedFilePackager();
+
+                    if (!protectedPackager.PackageFile(
+                        outputFile,
+                        packageExe,
+                        generatedZip,
+                        protectedRequirement))
+                    {
+                        return BuildResult.Fail(
+                            "Failed to create the protected packaged executable.\n\n" +
+                            protectedPackager.ErrorMessage);
+                    }
+                }
+                else
+                {
+                    if (!packager.PackageFile(
+                        outputFile,
+                        packageExe,
+                        generatedZip))
+                    {
+                        return BuildResult.Fail(
+                            "Failed to create the packaged executable.\n\n" +
+                            packager.ErrorMessage);
+                    }
+                }
 
                 if (!File.Exists(outputFile))
                     return BuildResult.Fail(

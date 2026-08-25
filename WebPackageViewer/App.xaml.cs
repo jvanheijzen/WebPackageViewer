@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
@@ -88,6 +88,100 @@ namespace WebPackageViewer
             // A packaged EXE normally has no command-line arguments, but it
             // must launch its embedded Web site rather than the builder.
             //
+                        // Protected packages authorize the course before decrypting
+            // the embedded Web site payload.
+            var protectedPack = new ProtectedFilePackager();
+
+            if (protectedPack.IsProtectedPackage(exeFile))
+            {
+                var manifest = protectedPack.ReadManifest(exeFile);
+
+                if (manifest == null)
+                {
+                    MessageBox.Show(
+                        "An error occurred reading the protected package.\n" +
+                        protectedPack.ErrorMessage,
+                        "Protected Web Package Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Exclamation);
+
+                    Environment.Exit(1);
+                }
+
+                var requirement = manifest.ToLicenseRequirement();
+
+                var licenseResult =
+                    OfflineLicenseManager.ValidateInstalledLicense(
+                        requirement);
+
+                if (!licenseResult.IsValid)
+                {
+                    var activationWindow =
+                        new LicenseActivationWindow(
+                            requirement,
+                            licenseResult.ErrorMessage);
+
+                    if (activationWindow.ShowDialog() != true)
+                        Environment.Exit(0);
+
+                    licenseResult =
+                        OfflineLicenseManager.ValidateInstalledLicense(
+                            requirement);
+
+                    if (!licenseResult.IsValid)
+                    {
+                        MessageBox.Show(
+                            licenseResult.ErrorMessage,
+                            "Offline License Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Exclamation);
+
+                        Environment.Exit(1);
+                    }
+                }
+
+                var protectedOutputPath =
+                    Path.Combine(
+                        Path.GetTempPath(),
+                        "dm_" + StringUtils.GenerateUniqueId(8));
+
+                TempUnpackDirectory = protectedOutputPath;
+
+                if (!protectedPack.UnpackageFile(
+                    exeFile,
+                    protectedOutputPath,
+                    true))
+                {
+                    MessageBox.Show(
+                        "An error occurred decrypting the viewer app and Web site.\n" +
+                        protectedPack.ErrorMessage,
+                        "Protected Web Package Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Exclamation);
+
+                    Environment.Exit(1);
+                }
+
+                Environment.CurrentDirectory = protectedOutputPath;
+
+                var protectedInnerExe =
+                    Path.Combine(
+                        protectedOutputPath,
+                        "WebPackageViewer.exe");
+
+                Process.Start(
+                    new ProcessStartInfo
+                    {
+                        FileName = protectedInnerExe,
+                        WorkingDirectory = protectedOutputPath
+                    });
+
+                if (IsConsoleApp)
+                    ReleaseConsolePrompt();
+
+                Environment.Exit(0);
+            }
+
             if (pack.FindMarkerOffset(exeFile, pack.SeparatorBytes) > 0)
             {
                 var outputPath = Path.Combine(
