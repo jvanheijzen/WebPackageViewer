@@ -311,6 +311,11 @@
 
                         <StackPanel Grid.Column="1"
                                     Orientation="Horizontal">
+                            <Button Width="80"
+                                    Height="38"
+                                    Margin="0,0,8,0"
+                                    Content="Help"
+                                    Click="HelpButton_Click"/>
                             <Button Width="125"
                                     Height="38"
                                     Margin="0,0,8,0"

@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using WebPackageViewer.CourseCatalog;
+using WebPackageViewer.Help;
 
 namespace WebPackageLicenseGenerator
 {
@@ -14,6 +15,7 @@ namespace WebPackageLicenseGenerator
         {
             InitializeComponent();
             RefreshStatus();
+            HelpLauncher.AttachAdministratorHelp(this, "operator-setup");
         }
 
         private void RefreshStatus()

@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using WebPackageViewer.Help;
 
 namespace WebPackageLicenseGenerator
 {
@@ -15,6 +16,7 @@ namespace WebPackageLicenseGenerator
         public BackupPasswordWindow(bool requireConfirmation)
         {
             InitializeComponent();
+            HelpLauncher.AttachAdministratorHelp(this, "signing-backup");
 
             _requireConfirmation = requireConfirmation;
 

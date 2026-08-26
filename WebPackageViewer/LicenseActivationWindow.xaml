@@ -55,6 +55,8 @@
 
         <StackPanel Grid.Row="10" Orientation="Horizontal"
                     HorizontalAlignment="Right">
+            <Button Width="80" Margin="0,0,10,0"
+                    Content="Help" Click="HelpButton_Click"/>
             <Button Width="120" Margin="0,0,10,0"
                     Content="Close" Click="CloseButton_Click"/>
             <Button Width="150" Content="Import License..."

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using WebPackageViewer.CourseCatalog;
 using WebPackageViewer.Licensing;
+using WebPackageViewer.Help;
 
 namespace WebPackageViewer
 {
@@ -23,6 +24,7 @@ namespace WebPackageViewer
         {
             InitializeComponent();
             ReloadCourses();
+            HelpLauncher.AttachAdministratorHelp(this, "builder-single");
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -600,6 +602,14 @@ namespace WebPackageViewer
                 .Replace("\t", "\\t");
         }
 
+        private void HelpButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            HelpLauncher.ShowAdministratorHelp(
+                this,
+                "builder-single");
+        }
         private void BatchBuildButton_Click(
             object sender,
             RoutedEventArgs e)

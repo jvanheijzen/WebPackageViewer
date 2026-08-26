@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using WebPackageViewer.Licensing;
+using WebPackageViewer.Help;
 
 namespace WebPackageLicenseGenerator
 {
@@ -13,6 +14,7 @@ namespace WebPackageLicenseGenerator
         {
             InitializeComponent();
             Reload();
+            HelpLauncher.AttachAdministratorHelp(this, "installed-licenses");
         }
 
         private InstalledLicenseInfo Selected =>

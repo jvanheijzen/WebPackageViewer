@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using WebPackageViewer.CourseCatalog;
+using WebPackageViewer.Help;
 
 namespace WebPackageLicenseGenerator
 {
@@ -15,6 +16,7 @@ namespace WebPackageLicenseGenerator
         public MainWindow()
         {
             InitializeComponent();
+            HelpLauncher.AttachAdministratorHelp(this, "license-generator");
 
             ExpirationDatePicker.SelectedDate =
                 DateTime.Today.AddYears(1);
@@ -79,6 +81,14 @@ namespace WebPackageLicenseGenerator
                     : "WARNING: " + verificationError;
         }
 
+        private void HelpButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            HelpLauncher.ShowAdministratorHelp(
+                this,
+                "license-generator");
+        }
         private void ManageCoursesButton_Click(
             object sender,
             RoutedEventArgs e)

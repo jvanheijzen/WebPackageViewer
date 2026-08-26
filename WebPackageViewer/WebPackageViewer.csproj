@@ -63,4 +63,10 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\Documentation\WebPackageCourses-Distributor.html">
+      <LogicalName>WebPackageViewer.DistributorHelp.html</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

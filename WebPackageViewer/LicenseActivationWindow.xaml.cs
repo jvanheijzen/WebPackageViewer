@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using WebPackageViewer.Licensing;
+using WebPackageViewer.Help;
 
 namespace WebPackageViewer
 {
@@ -14,6 +15,7 @@ namespace WebPackageViewer
             string validationMessage = null)
         {
             InitializeComponent();
+            HelpLauncher.AttachDistributorHelp(this, "dist-activate");
 
             _requirement = requirement;
 
@@ -28,6 +30,14 @@ namespace WebPackageViewer
                 StatusTextBlock.Text = validationMessage;
         }
 
+        private void HelpButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            HelpLauncher.ShowDistributorHelp(
+                this,
+                "dist-activate");
+        }
         private void CopyMachineIdButton_Click(object sender, RoutedEventArgs e)
         {
             var text =

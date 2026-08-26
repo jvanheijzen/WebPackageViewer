@@ -1,4 +1,4 @@
-using Microsoft.Web.WebView2.Core;
+﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
+using WebPackageViewer.Help;
 
 namespace WebPackageViewer
 {
@@ -30,6 +31,7 @@ namespace WebPackageViewer
             Configuration = config;
 
             InitializeComponent();
+            HelpLauncher.AttachDistributorHelp(this, "dist-viewer");
 
             Loaded += Window_Loaded;
             StateChanged += Window_StateChanged;
@@ -384,6 +386,14 @@ namespace WebPackageViewer
             SystemCommands.ShowSystemMenu(this, screenPoint);
         }
 
+        private void HelpButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            HelpLauncher.ShowDistributorHelp(
+                this,
+                "dist-viewer");
+        }
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             SystemCommands.MinimizeWindow(this);

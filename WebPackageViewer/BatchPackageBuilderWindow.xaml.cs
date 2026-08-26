@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using WebPackageViewer.CourseCatalog;
 using WebPackageViewer.Licensing;
+using WebPackageViewer.Help;
 using Forms = System.Windows.Forms;
 
 namespace WebPackageViewer
@@ -28,6 +29,7 @@ namespace WebPackageViewer
         {
             InitializeComponent();
             DataContext = this;
+            HelpLauncher.AttachAdministratorHelp(this, "builder-batch");
 
             var courses = _catalog.Load();
             CourseComboBox.ItemsSource = courses;
@@ -235,6 +237,14 @@ namespace WebPackageViewer
             Items.Clear();
         }
 
+        private void HelpButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            HelpLauncher.ShowAdministratorHelp(
+                this,
+                "builder-batch");
+        }
         private async void BuildAllButton_Click(
             object sender,
             RoutedEventArgs e)

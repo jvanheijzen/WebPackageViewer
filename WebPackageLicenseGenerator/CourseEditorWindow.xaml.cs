@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using WebPackageViewer.CourseCatalog;
+using WebPackageViewer.Help;
 
 namespace WebPackageLicenseGenerator
 {
@@ -15,6 +16,7 @@ namespace WebPackageLicenseGenerator
             CourseDefinition existingCourse = null)
         {
             InitializeComponent();
+            HelpLauncher.AttachAdministratorHelp(this, "course-catalog");
 
             if (existingCourse == null)
             {

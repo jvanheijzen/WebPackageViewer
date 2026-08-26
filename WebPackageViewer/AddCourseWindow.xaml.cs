@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using WebPackageViewer.CourseCatalog;
+using WebPackageViewer.Help;
 
 namespace WebPackageViewer
 {
@@ -10,6 +11,7 @@ namespace WebPackageViewer
         public AddCourseWindow()
         {
             InitializeComponent();
+            HelpLauncher.AttachAdministratorHelp(this, "course-catalog");
         }
 
         private void AddButton_Click(
