@@ -600,6 +600,18 @@ namespace WebPackageViewer
                 .Replace("\t", "\\t");
         }
 
+        private void BatchBuildButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var window =
+                new BatchPackageBuilderWindow
+                {
+                    Owner = this
+                };
+
+            window.ShowDialog();
+        }
         private class BuildResult
         {
             public bool Success { get; private set; }

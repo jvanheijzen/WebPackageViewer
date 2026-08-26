@@ -63,10 +63,20 @@ namespace WebPackageLicenseGenerator
 
         private void RefreshKeyStatus()
         {
+            if (!SigningKeyStore.HasPrivateKey)
+            {
+                KeyStatusTextBlock.Text =
+                    "Signing key not found. Restore the existing signing identity before generating licenses.";
+                return;
+            }
+
+            string verificationError;
+
             KeyStatusTextBlock.Text =
-                SigningKeyStore.HasPrivateKey
-                    ? "Signing key initialized. Create a portable recovery backup before moving to another computer or issuing production licenses."
-                    : "Signing key not found. Restore the existing signing identity before generating licenses.";
+                SigningIdentityVerifier.MatchesViewerPublicKey(
+                    out verificationError)
+                    ? "Signing key ready. The installed signing identity matches this WebPackageViewer build."
+                    : "WARNING: " + verificationError;
         }
 
         private void ManageCoursesButton_Click(
@@ -86,6 +96,38 @@ namespace WebPackageLicenseGenerator
             LoadCourses(current?.ProductCode);
         }
 
+        private void InstalledLicensesButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var window =
+                new InstalledLicensesWindow
+                {
+                    Owner = this
+                };
+
+            window.ShowDialog();
+        }
+
+        private void OperatorSetupButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var current =
+                CourseComboBox.SelectedItem
+                as CourseDefinition;
+
+            var window =
+                new OperatorSetupWindow
+                {
+                    Owner = this
+                };
+
+            window.ShowDialog();
+
+            LoadCourses(current?.ProductCode);
+            RefreshKeyStatus();
+        }
         private void CourseComboBox_SelectionChanged(
             object sender,
             SelectionChangedEventArgs e)
@@ -282,6 +324,21 @@ namespace WebPackageLicenseGenerator
                         "License Generator",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
+                    return;
+                }
+
+                string verificationError;
+
+                if (!SigningIdentityVerifier.MatchesViewerPublicKey(
+                    out verificationError))
+                {
+                    MessageBox.Show(
+                        this,
+                        verificationError +
+                        "\n\nUse Operator Setup to restore the correct signing identity before generating production licenses.",
+                        "Signing Identity Mismatch",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                     return;
                 }
 
