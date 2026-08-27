@@ -104,6 +104,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -244,7 +252,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -275,7 +283,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:FALSE"
+            "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -387,7 +395,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Web Package Tools"
         "ProductCode" = "8:{F6948888-C332-4FF3-AA39-C1E43863716C}"
-        "PackageCode" = "8:{87D596F3-46E1-4ACA-B71D-6958FE147216}"
+        "PackageCode" = "8:{4F18EEF3-709F-472A-97F3-16C478A456CE}"
         "UpgradeCode" = "8:{2E9546C7-9F38-4C0E-9A11-485D1C14C167}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
