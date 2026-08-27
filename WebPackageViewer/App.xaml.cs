@@ -169,15 +169,12 @@ namespace WebPackageViewer
                         protectedOutputPath,
                         "WebPackageViewer.exe");
 
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = protectedInnerExe,
-                        WorkingDirectory = protectedOutputPath
-                    });
-
                 if (IsConsoleApp)
                     ReleaseConsolePrompt();
+
+                RunExtractedViewerAndCleanup(
+                    protectedInnerExe,
+                    protectedOutputPath);
 
                 Environment.Exit(0);
             }
@@ -210,19 +207,15 @@ namespace WebPackageViewer
                     outputPath,
                     "WebPackageViewer.exe");
 
-                var p = Process.Start(
-                    new ProcessStartInfo()
-                    {
-                        FileName = exe,
-                        WorkingDirectory = outputPath
-                    });
-
-
                 Console.Write("\n✅ Launching Web Viewer...");
 
 
                 if (IsConsoleApp)
                     ReleaseConsolePrompt();
+
+                RunExtractedViewerAndCleanup(
+                    exe,
+                    outputPath);
 
                 Environment.Exit(0);
             }
@@ -428,6 +421,110 @@ namespace WebPackageViewer
             };
         }
 
+
+        /// <summary>
+        /// Launches the extracted viewer, keeps the packaged outer process
+        /// alive until the viewer closes, and then removes the decrypted or
+        /// unpacked temporary Web root.
+        ///
+        /// Cleanup belongs to the outer process because the extracted inner
+        /// WebPackageViewer.exe does not inherit TempUnpackDirectory.
+        /// </summary>
+        private static void RunExtractedViewerAndCleanup(
+            string viewerExe,
+            string tempDirectory)
+        {
+            Process viewerProcess = null;
+
+            try
+            {
+                viewerProcess =
+                    Process.Start(
+                        new ProcessStartInfo
+                        {
+                            FileName = viewerExe,
+                            WorkingDirectory = tempDirectory
+                        });
+
+                viewerProcess?.WaitForExit();
+            }
+            finally
+            {
+                viewerProcess?.Dispose();
+
+                // The packaged outer process changed its current working
+                // directory to the extracted package before launching the
+                // inner viewer. Windows can keep that directory in use while
+                // it is the process' current directory, so move away from it
+                // before attempting cleanup.
+                try
+                {
+                    Environment.CurrentDirectory =
+                        Path.GetTempPath();
+                }
+                catch
+                {
+                    // Cleanup below will still retry/fail safely.
+                }
+
+                TryDeleteTemporaryPackage(
+                    tempDirectory);
+
+                if (string.Equals(
+                    TempUnpackDirectory,
+                    tempDirectory,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    TempUnpackDirectory = null;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Deletes an extracted package directory. WebView2 child processes
+        /// can keep files open briefly after the main viewer exits, so retry
+        /// for several seconds before giving up.
+        /// </summary>
+        private static void TryDeleteTemporaryPackage(
+            string tempDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(tempDirectory) ||
+                !Directory.Exists(tempDirectory))
+            {
+                return;
+            }
+
+            const int retryCount = 40;
+            const int retryDelayMilliseconds = 250;
+
+            for (var attempt = 1;
+                 attempt <= retryCount;
+                 attempt++)
+            {
+                try
+                {
+                    Directory.Delete(
+                        tempDirectory,
+                        true);
+
+                    return;
+                }
+                catch (IOException)
+                {
+                    if (attempt == retryCount)
+                        return;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (attempt == retryCount)
+                        return;
+                }
+
+                System.Threading.Thread.Sleep(
+                    retryDelayMilliseconds);
+            }
+        }
 
         /// <summary>
         /// Determines whether a bare interactive launch should open the
